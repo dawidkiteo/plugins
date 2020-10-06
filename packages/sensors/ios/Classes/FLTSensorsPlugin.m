@@ -133,7 +133,8 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
   [_altimeter
       startRelativeAltitudeUpdatesToQueue:[[NSOperationQueue alloc] init]
                   withHandler:^(CMAltitudeData* altitudeData, NSError* error) {
-                    eventSink(altitudeData.pressure);
+                    NSArray* array = [NSArray arrayWithObjects: altitudeData.pressure, nil];
+                    eventSink(array);
                   }];
   return nil;
 }
