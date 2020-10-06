@@ -112,13 +112,16 @@ class UserAccelerometerEvent {
   String toString() => '[UserAccelerometerEvent (x: $x, y: $y, z: $z)]';
 }
 
-/// Reading from barometer that returns atmospheric pressure in hPa (millibar)
+/// Reading from barometer that returns atmospheric pressure in pressure (millibar)
 class BarometerEvent {
   /// Atmospheric pressure
-  final double hPa;
+  final double pressure;
 
-  /// Contructs an instance with the given hPa
-  BarometerEvent(this.hPa);
+  /// Contructs an instance with the given pressure
+  BarometerEvent(this.pressure);
+
+  @override
+  String toString() => '[BarometerEvent (pressure: $pressure)]';
 }
 
 AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
@@ -179,8 +182,7 @@ Stream<BarometerEvent> get barometerEvents {
   if (_barometerEvents == null) {
     _barometerEvents = _barometerEventChannel
         .receiveBroadcastStream()
-        .map((dynamic event) =>
-            _listToBarometerEvent(event.cast<double>()));
+        .map((dynamic event) => _listToBarometerEvent(event.cast<double>()));
   }
   return _barometerEvents;
 }

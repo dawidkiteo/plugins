@@ -154,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }));
     _streamSubscriptions.add(barometerEvents.listen((BarometerEvent event) {
-      _barometerValues = <double>[event.hPa];
+      _barometerValues = <double>[event.pressure];
     }));
   }
 }
