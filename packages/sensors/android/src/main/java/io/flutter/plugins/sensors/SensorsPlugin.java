@@ -18,10 +18,13 @@ public class SensorsPlugin implements FlutterPlugin {
   private static final String GYROSCOPE_CHANNEL_NAME = "plugins.flutter.io/sensors/gyroscope";
   private static final String USER_ACCELEROMETER_CHANNEL_NAME =
       "plugins.flutter.io/sensors/user_accel";
+  private static final String BAROMETER_CHANNEL_NAME =
+          "plugins.flutter.io/sensors/barometer";
 
   private EventChannel accelerometerChannel;
   private EventChannel userAccelChannel;
   private EventChannel gyroscopeChannel;
+  private EventChannel barometerChannel;
 
   /** Plugin registration. */
   @SuppressWarnings("deprecation")
@@ -62,11 +65,19 @@ public class SensorsPlugin implements FlutterPlugin {
             (SensorManager) context.getSystemService(context.SENSOR_SERVICE),
             Sensor.TYPE_GYROSCOPE);
     gyroscopeChannel.setStreamHandler(gyroScopeStreamHandler);
+
+    barometerChannel = new EventChannel(messenger, BAROMETER_CHANNEL_NAME);
+    final StreamHandlerImpl barometerStreamHandler =
+            new StreamHandlerImpl(
+                    (SensorManager) context.getSystemService(context.SENSOR_SERVICE),
+                    Sensor.TYPE_PRESSURE);
+    barometerChannel.setStreamHandler(barometerStreamHandler);
   }
 
   private void teardownEventChannels() {
     accelerometerChannel.setStreamHandler(null);
     userAccelChannel.setStreamHandler(null);
     gyroscopeChannel.setStreamHandler(null);
+    barometerChannel.setStreamHandler(null);
   }
 }
