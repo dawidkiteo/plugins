@@ -27,16 +27,29 @@
       [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/gyroscope"
                                 binaryMessenger:[registrar messenger]];
   [gyroscopeChannel setStreamHandler:gyroscopeStreamHandler];
+
+  FLTBarometerStreamHandler* barometerStreamHandler = [[FLTBarometerStreamHandler alloc] init];
+  FlutterEventChannel* barometerChannel =
+      [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/barometer"
+                                binaryMessenger:[registrar messenger]];
+  [barometerChannel setStreamHandler:barometerStreamHandler];
 }
 
 @end
 
 const double GRAVITY = 9.8;
 CMMotionManager* _motionManager;
+CMAltimeter* _altimeter;
 
 void _initMotionManager() {
   if (!_motionManager) {
     _motionManager = [[CMMotionManager alloc] init];
+  }
+}
+
+void _initAltimeter() {
+  if (!_altimeter) {
+    _altimeter = [[CMAltimeter alloc] init];
   }
 }
 
@@ -108,6 +121,25 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
   [_motionManager stopGyroUpdates];
+  return nil;
+}
+
+@end
+
+@implementation FLTBarometerStreamHandler
+
+- (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
+  _initAltimeter();
+  [_altimeter
+      startRelativeAltitudeUpdatesToQueue:[[NSOperationQueue alloc] init]
+                  withHandler:^(CMAltitudeData* altitudeData, NSError* error) {
+                    eventSink(altitudeData.pressure);
+                  }];
+  return nil;
+}
+
+- (FlutterError*)onCancelWithArguments:(id)arguments {
+  [_altimeter stopRelativeAltitudeUpdates];
   return nil;
 }
 
