@@ -14,6 +14,9 @@ const EventChannel _userAccelerometerEventChannel =
 const EventChannel _gyroscopeEventChannel =
     EventChannel('plugins.flutter.io/sensors/gyroscope');
 
+const EventChannel _barometerEventChannel =
+    EventChannel('plugins.flutter.io/sensors/barometer');
+
 /// Discrete reading from an accelerometer. Accelerometers measure the velocity
 /// of the device. Note that these readings include the effects of gravity. Put
 /// simply, you can use accelerometer readings to tell if the device is moving in
@@ -109,6 +112,15 @@ class UserAccelerometerEvent {
   String toString() => '[UserAccelerometerEvent (x: $x, y: $y, z: $z)]';
 }
 
+/// Reading from barometer that returns atmospheric pressure in hPa (millibar)
+class BarometerEvent {
+  /// Atmospheric pressure
+  final double hPa;
+
+  /// Contructs an instance with the given hPa
+  BarometerEvent(this.hPa);
+}
+
 AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
   return AccelerometerEvent(list[0], list[1], list[2]);
 }
@@ -121,9 +133,14 @@ GyroscopeEvent _listToGyroscopeEvent(List<double> list) {
   return GyroscopeEvent(list[0], list[1], list[2]);
 }
 
+BarometerEvent _listToBarometerEvent(List<double> list) {
+  return BarometerEvent(list[0]);
+}
+
 Stream<AccelerometerEvent> _accelerometerEvents;
 Stream<GyroscopeEvent> _gyroscopeEvents;
 Stream<UserAccelerometerEvent> _userAccelerometerEvents;
+Stream<BarometerEvent> _barometerEvents;
 
 /// A broadcast stream of events from the device accelerometer.
 Stream<AccelerometerEvent> get accelerometerEvents {
@@ -155,4 +172,15 @@ Stream<UserAccelerometerEvent> get userAccelerometerEvents {
             _listToUserAccelerometerEvent(event.cast<double>()));
   }
   return _userAccelerometerEvents;
+}
+
+/// A broadcast stream of events from the device barometer.
+Stream<BarometerEvent> get barometerEvents {
+  if (_barometerEvents == null) {
+    _barometerEvents = _barometerEventChannel
+        .receiveBroadcastStream()
+        .map((dynamic event) =>
+            _listToBarometerEvent(event.cast<double>()));
+  }
+  return _barometerEvents;
 }

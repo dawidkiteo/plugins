@@ -5,6 +5,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:sensors/sensors.dart';
 
@@ -44,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _accelerometerValues;
   List<double> _userAccelerometerValues;
   List<double> _gyroscopeValues;
+  List<double> _barometerValues;
   List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
 
@@ -56,6 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final List<String> userAccelerometer = _userAccelerometerValues
         ?.map((double v) => v.toStringAsFixed(1))
         ?.toList();
+    final List<String> barometer =
+        _barometerValues?.map((e) => e.toStringAsFixed(1))?.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -107,6 +111,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             padding: const EdgeInsets.all(16.0),
           ),
+          Padding(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Barometer: $barometer'),
+              ],
+            ),
+            padding: const EdgeInsets.all(16.0),
+          ),
         ],
       ),
     );
@@ -139,6 +152,9 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _userAccelerometerValues = <double>[event.x, event.y, event.z];
       });
+    }));
+    _streamSubscriptions.add(barometerEvents.listen((BarometerEvent event) {
+      _barometerValues = <double>[event.hPa];
     }));
   }
 }
