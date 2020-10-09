@@ -33,6 +33,12 @@
       [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/barometer"
                                 binaryMessenger:[registrar messenger]];
   [barometerChannel setStreamHandler:barometerStreamHandler];
+
+  FLTMagnetometerStreamHandler* magnetometerStreamHandler = [[FLTMagnetometerStreamHandler alloc] init];
+  FlutterEventChannel* magnetometerChannel =
+      [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/magnetometer"
+                                binaryMessenger:[registrar messenger]];
+  [magnetometerChannel setStreamHandler:magnetometerStreamHandler];
 }
 
 @end
@@ -133,7 +139,8 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
   [_altimeter
       startRelativeAltitudeUpdatesToQueue:[[NSOperationQueue alloc] init]
                   withHandler:^(CMAltitudeData* altitudeData, NSError* error) {
-                    NSArray* array = [NSArray arrayWithObjects: altitudeData.pressure, nil];
+                    // Divide by 100 to convert Pa to hPa to align with Android
+                    NSArray* array = [NSArray arrayWithObjects: altitudeData.pressure / 100.0, nil];
                     eventSink(array);
                   }];
   return nil;
@@ -141,6 +148,25 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
   [_altimeter stopRelativeAltitudeUpdates];
+  return nil;
+}
+
+@end
+
+@implementation FLTMagnetometerStreamHandler
+
+- (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
+  _initMotionManager();
+  [_motionManager
+      startMagnetometerUpdatesToQueue:[[NSOperationQueue alloc] init]
+                  withHandler:^(CMMagnetometerData* magData, NSError* error) {
+                    sendTriplet(magData.magneticField.x, magData.magneticField.y, magData.magneticField.z, eventSink);
+                  }];
+  return nil;
+}
+
+- (FlutterError*)onCancelWithArguments:(id)arguments {
+  [_motionManager stopMagnetometerUpdates];
   return nil;
 }
 

@@ -46,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> _userAccelerometerValues;
   List<double> _gyroscopeValues;
   List<double> _barometerValues;
+  List<double> _magnetometerValues;
   List<StreamSubscription<dynamic>> _streamSubscriptions =
       <StreamSubscription<dynamic>>[];
 
@@ -60,6 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ?.toList();
     final List<String> barometer =
         _barometerValues?.map((e) => e.toStringAsFixed(1))?.toList();
+    final List<String> magnetometer =
+        _magnetometerValues?.map((e) => e.toStringAsFixed(1))?.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -120,6 +123,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             padding: const EdgeInsets.all(16.0),
           ),
+          Padding(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Magnetometer: $magnetometer'),
+              ],
+            ),
+            padding: const EdgeInsets.all(16.0),
+          ),
         ],
       ),
     );
@@ -156,6 +168,12 @@ class _MyHomePageState extends State<MyHomePage> {
     _streamSubscriptions.add(barometerEvents.listen((BarometerEvent event) {
       setState(() {
         _barometerValues = <double>[event.pressure];
+      });
+    }));
+    _streamSubscriptions
+        .add(magnetometerEvents.listen((MagnetometerEvent event) {
+      setState(() {
+        _magnetometerValues = <double>[event.x, event.y, event.z];
       });
     }));
   }

@@ -20,11 +20,14 @@ public class SensorsPlugin implements FlutterPlugin {
       "plugins.flutter.io/sensors/user_accel";
   private static final String BAROMETER_CHANNEL_NAME =
           "plugins.flutter.io/sensors/barometer";
+  private static final String MAGNETOMETER_CHANNEL_NAME =
+          "plugins.flutter.io/sensors/magnetometer";
 
   private EventChannel accelerometerChannel;
   private EventChannel userAccelChannel;
   private EventChannel gyroscopeChannel;
   private EventChannel barometerChannel;
+  private EventChannel magnetometerChannel;
 
   /** Plugin registration. */
   @SuppressWarnings("deprecation")
@@ -72,6 +75,13 @@ public class SensorsPlugin implements FlutterPlugin {
                     (SensorManager) context.getSystemService(context.SENSOR_SERVICE),
                     Sensor.TYPE_PRESSURE);
     barometerChannel.setStreamHandler(barometerStreamHandler);
+
+    magnetometerChannel = new EventChannel(messenger, MAGNETOMETER_CHANNEL_NAME);
+    final StreamHandlerImpl magnometerStreamHandler =
+            new StreamHandlerImpl(
+                    (SensorManager) context.getSystemService(context.SENSOR_SERVICE),
+                    Sensor.TYPE_MAGNETIC_FIELD);
+    magnetometerChannel.setStreamHandler(magnometerStreamHandler);
   }
 
   private void teardownEventChannels() {
@@ -79,5 +89,6 @@ public class SensorsPlugin implements FlutterPlugin {
     userAccelChannel.setStreamHandler(null);
     gyroscopeChannel.setStreamHandler(null);
     barometerChannel.setStreamHandler(null);
+    magnetometerChannel.setStreamHandler(null);
   }
 }

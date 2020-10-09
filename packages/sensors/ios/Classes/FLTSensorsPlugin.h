@@ -18,3 +18,6 @@
 
 @interface FLTBarometerStreamHandler : NSObject <FlutterStreamHandler>
 @end
+
+@interface FLTMagnetometerStreamHandler : NSObject <FlutterStreamHandler>
+@end

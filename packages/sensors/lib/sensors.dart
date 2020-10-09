@@ -17,6 +17,9 @@ const EventChannel _gyroscopeEventChannel =
 const EventChannel _barometerEventChannel =
     EventChannel('plugins.flutter.io/sensors/barometer');
 
+const EventChannel _magnetometerEventChannel =
+    EventChannel('plugins.flutter.io/sensors/magnetometer');
+
 /// Discrete reading from an accelerometer. Accelerometers measure the velocity
 /// of the device. Note that these readings include the effects of gravity. Put
 /// simply, you can use accelerometer readings to tell if the device is moving in
@@ -124,6 +127,17 @@ class BarometerEvent {
   String toString() => '[BarometerEvent (pressure: $pressure)]';
 }
 
+class MagnetometerEvent {
+  final double x;
+  final double y;
+  final double z;
+
+  MagnetometerEvent(this.x, this.y, this.z);
+
+  @override
+  String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
+}
+
 AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
   return AccelerometerEvent(list[0], list[1], list[2]);
 }
@@ -140,10 +154,15 @@ BarometerEvent _listToBarometerEvent(List<double> list) {
   return BarometerEvent(list[0]);
 }
 
+MagnetometerEvent _listToMagnetometerEvent(List<double> list) {
+  return MagnetometerEvent(list[0], list[1], list[2]);
+}
+
 Stream<AccelerometerEvent> _accelerometerEvents;
 Stream<GyroscopeEvent> _gyroscopeEvents;
 Stream<UserAccelerometerEvent> _userAccelerometerEvents;
 Stream<BarometerEvent> _barometerEvents;
+Stream<MagnetometerEvent> _magnetometerEvents;
 
 /// A broadcast stream of events from the device accelerometer.
 Stream<AccelerometerEvent> get accelerometerEvents {
@@ -185,4 +204,14 @@ Stream<BarometerEvent> get barometerEvents {
         .map((dynamic event) => _listToBarometerEvent(event.cast<double>()));
   }
   return _barometerEvents;
+}
+
+/// A broadcast stream of values recorded by magnetometer
+Stream<MagnetometerEvent> get magnetometerEvents {
+  if (_magnetometerEvents == null) {
+    _magnetometerEvents = _magnetometerEventChannel
+        .receiveBroadcastStream()
+        .map((dynamic event) => _listToMagnetometerEvent(event.cast<double>()));
+  }
+  return _magnetometerEvents;
 }
