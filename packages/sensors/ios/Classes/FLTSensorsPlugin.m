@@ -139,8 +139,9 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
   [_altimeter
       startRelativeAltitudeUpdatesToQueue:[[NSOperationQueue alloc] init]
                   withHandler:^(CMAltitudeData* altitudeData, NSError* error) {
-                    // Divide by 100 to convert Pa to hPa to align with Android
-                    NSArray* array = [NSArray arrayWithObjects: altitudeData.pressure / 100.0, nil];
+                    // Multiply by 10 to conver kilopascals to hPa (aligning with Android)
+                    NSNumber* pressure = [NSNumber numberWithDouble:[altitudeData.pressure doubleValue] * 10.0];
+                    NSArray* array = [NSArray arrayWithObjects: pressure, nil];
                     eventSink(array);
                   }];
   return nil;
