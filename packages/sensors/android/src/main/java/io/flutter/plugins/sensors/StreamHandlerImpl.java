@@ -8,6 +8,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import io.flutter.plugin.common.EventChannel;
 
@@ -28,6 +29,8 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
         if (arguments != null) {
             samplingPeriod = 1000000 / ((int) arguments);
         }
+
+        Log.d("StreamHandlerImpl", sensor.toString() + " - sampling period: " + samplingPeriod);
 
         sensorEventListener = createSensorEventListener(events);
         sensorManager.registerListener(sensorEventListener, sensor, samplingPeriod);
