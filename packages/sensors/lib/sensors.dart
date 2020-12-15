@@ -146,36 +146,24 @@ class MagnetometerEvent {
   String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
 }
 
-AccelerometerEvent _listToAccelerometerEvent(dynamic list) {
-  final dataBuffer = Int8List.fromList(list).buffer;
-  final floats = dataBuffer.asFloat64List(0, 3);
-  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
-  return AccelerometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
+AccelerometerEvent _listToAccelerometerEvent(Map<dynamic, dynamic> map) {
+  return AccelerometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
 }
 
-UserAccelerometerEvent _listToUserAccelerometerEvent(dynamic list) {
-  final dataBuffer = Int8List.fromList(list).buffer;
-  final floats = dataBuffer.asFloat64List(0, 3);
-  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
-  return UserAccelerometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
+UserAccelerometerEvent _listToUserAccelerometerEvent(Map<dynamic, dynamic> map) {
+  return UserAccelerometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
 }
 
-GyroscopeEvent _listToGyroscopeEvent(dynamic list) {
-  final dataBuffer = Int8List.fromList(list).buffer;
-  final floats = dataBuffer.asFloat64List(0, 3);
-  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
-  return GyroscopeEvent(floats[0], floats[1], floats[2], timestamp[0]);
+GyroscopeEvent _listToGyroscopeEvent(Map<dynamic, dynamic> map) {
+  return GyroscopeEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
 }
 
 BarometerEvent _listToBarometerEvent(List<double> list) {
   return BarometerEvent(list[0]);
 }
 
-MagnetometerEvent _listToMagnetometerEvent(dynamic list) {
-  final dataBuffer = Int8List.fromList(list).buffer;
-  final floats = dataBuffer.asFloat64List(0, 3);
-  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
-  return MagnetometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
+MagnetometerEvent _listToMagnetometerEvent(Map<dynamic, dynamic> map) {
+  return MagnetometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
 }
 
 Stream<AccelerometerEvent> _accelerometerEvents;

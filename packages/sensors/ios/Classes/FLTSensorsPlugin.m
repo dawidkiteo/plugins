@@ -60,12 +60,13 @@ void _initAltimeter() {
 }
 
 static void sendTriplet(Float64 x, Float64 y, Float64 z, uint64_t timestamp, FlutterEventSink sink) {
-    NSMutableData* event = [NSMutableData dataWithCapacity:3 * sizeof(Float64) + sizeof(uint64_t)];
-    [event appendBytes:&x length:sizeof(Float64)];
-    [event appendBytes:&y length:sizeof(Float64)];
-    [event appendBytes:&z length:sizeof(Float64)];
-    [event appendBytes:&timestamp length:sizeof(uint64_t)];
-    sink([FlutterStandardTypedData typedDataWithFloat64:event]);
+    NSDictionary *dictionary = @{
+           @"x" : [NSNumber numberWithFloat: x],
+           @"y" : [NSNumber numberWithFloat: y],
+           @"z" : [NSNumber numberWithFloat: z],
+           @"timestamp" : [NSNumber numberWithUnsignedLongLong: timestamp]
+    };
+    sink(dictionary);
 }
 
 static uint64_t currentTimestamp() {
