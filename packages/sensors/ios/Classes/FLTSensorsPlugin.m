@@ -59,17 +59,23 @@ void _initAltimeter() {
     }
 }
 
-static void sendTriplet(Float64 x, Float64 y, Float64 z, Float64 timestamp, FlutterEventSink sink) {
-    NSMutableData* event = [NSMutableData dataWithCapacity:3 * sizeof(Float64)];
+static void sendTriplet(Float64 x, Float64 y, Float64 z, uint64_t timestamp, FlutterEventSink sink) {
+    NSMutableData* event = [NSMutableData dataWithCapacity:3 * sizeof(Float64) + sizeof(uint64_t)];
     [event appendBytes:&x length:sizeof(Float64)];
     [event appendBytes:&y length:sizeof(Float64)];
     [event appendBytes:&z length:sizeof(Float64)];
-    [event appendBytes:&timestamp length:sizeof(Float64)];
+    [event appendBytes:&timestamp length:sizeof(uint64_t)];
     sink([FlutterStandardTypedData typedDataWithFloat64:event]);
 }
 
-static Float64 currentTimestamp() {
-    return [[NSNumber numberWithFloat:[[[NSDate date] init] timeIntervalSince1970] * 1000] floatValue];
+static uint64_t currentTimestamp() {
+    if (@available(iOS 10.0, *)) {
+        uint64_t clock = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+        NSLog(@"%llu", clock);
+        return clock;
+    } else {
+        return 0;// Fallback on earlier versions
+    }
 }
 
 @implementation FLTAccelerometerStreamHandler
@@ -85,7 +91,7 @@ static Float64 currentTimestamp() {
     [_motionManager
      startAccelerometerUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMAccelerometerData* accelerometerData, NSError* error) {
-        Float64 timestamp = currentTimestamp();
+        uint64_t timestamp = currentTimestamp();
         CMAcceleration acceleration = accelerometerData.acceleration;
         // Multiply by gravity, and adjust sign values to
         // align with Android.
@@ -115,7 +121,7 @@ static Float64 currentTimestamp() {
     [_motionManager
      startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
-        Float64 timestamp = currentTimestamp();
+        uint64_t timestamp = currentTimestamp();
         CMAcceleration acceleration = data.userAcceleration;
         // Multiply by gravity, and adjust sign values to align with Android.
         sendTriplet(-acceleration.x * GRAVITY, -acceleration.y * GRAVITY,
@@ -144,7 +150,7 @@ static Float64 currentTimestamp() {
     [_motionManager
      startGyroUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMGyroData* gyroData, NSError* error) {
-        Float64 timestamp = currentTimestamp();
+        uint64_t timestamp = currentTimestamp();
         CMRotationRate rotationRate = gyroData.rotationRate;
         sendTriplet(rotationRate.x, rotationRate.y, rotationRate.z, timestamp, eventSink);
 
@@ -195,7 +201,7 @@ static Float64 currentTimestamp() {
     [_motionManager
      startMagnetometerUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMMagnetometerData* magData, NSError* error) {
-        Float64 timestamp = currentTimestamp();
+        uint64_t timestamp = currentTimestamp();
         sendTriplet(magData.magneticField.x, magData.magneticField.y,
                     magData.magneticField.z, timestamp, eventSink);
     }];

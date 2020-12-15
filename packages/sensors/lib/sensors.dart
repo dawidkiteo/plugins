@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -45,7 +46,7 @@ class AccelerometerEvent {
   final double z;
 
   /// Timestamp in milliseconds
-  final double timestamp;
+  final int timestamp;
 
   @override
   String toString() => '[AccelerometerEvent (x: $x, y: $y, z: $z)]';
@@ -80,7 +81,7 @@ class GyroscopeEvent {
   final double z;
 
   /// Timestamp in milliseconds
-  final double timestamp;
+  final int timestamp;
 
   @override
   String toString() => '[GyroscopeEvent (x: $x, y: $y, z: $z)]';
@@ -114,7 +115,7 @@ class UserAccelerometerEvent {
   final double z;
 
   /// Timestamp in milliseconds
-  final double timestamp;
+  final int timestamp;
 
   @override
   String toString() => '[UserAccelerometerEvent (x: $x, y: $y, z: $z)]';
@@ -137,7 +138,7 @@ class MagnetometerEvent {
   final double y;
   final double z;
   /// Timestamp in milliseconds
-  final double timestamp;
+  final int timestamp;
 
   MagnetometerEvent(this.x, this.y, this.z, this.timestamp);
 
@@ -145,24 +146,36 @@ class MagnetometerEvent {
   String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
 }
 
-AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
-  return AccelerometerEvent(list[0], list[1], list[2], list[3]);
+AccelerometerEvent _listToAccelerometerEvent(dynamic list) {
+  final dataBuffer = Int8List.fromList(list).buffer;
+  final floats = dataBuffer.asFloat64List(0, 3);
+  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
+  return AccelerometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
 }
 
-UserAccelerometerEvent _listToUserAccelerometerEvent(List<double> list) {
-  return UserAccelerometerEvent(list[0], list[1], list[2], list[3]);
+UserAccelerometerEvent _listToUserAccelerometerEvent(dynamic list) {
+  final dataBuffer = Int8List.fromList(list).buffer;
+  final floats = dataBuffer.asFloat64List(0, 3);
+  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
+  return UserAccelerometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
 }
 
-GyroscopeEvent _listToGyroscopeEvent(List<double> list) {
-  return GyroscopeEvent(list[0], list[1], list[2], list[3]);
+GyroscopeEvent _listToGyroscopeEvent(dynamic list) {
+  final dataBuffer = Int8List.fromList(list).buffer;
+  final floats = dataBuffer.asFloat64List(0, 3);
+  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
+  return GyroscopeEvent(floats[0], floats[1], floats[2], timestamp[0]);
 }
 
 BarometerEvent _listToBarometerEvent(List<double> list) {
   return BarometerEvent(list[0]);
 }
 
-MagnetometerEvent _listToMagnetometerEvent(List<double> list) {
-  return MagnetometerEvent(list[0], list[1], list[2], list[3]);
+MagnetometerEvent _listToMagnetometerEvent(dynamic list) {
+  final dataBuffer = Int8List.fromList(list).buffer;
+  final floats = dataBuffer.asFloat64List(0, 3);
+  final timestamp = dataBuffer.asUint64List(8 * 3, 1);
+  return MagnetometerEvent(floats[0], floats[1], floats[2], timestamp[0]);
 }
 
 Stream<AccelerometerEvent> _accelerometerEvents;
@@ -176,7 +189,7 @@ Stream<AccelerometerEvent> accelerometerEvents({int frequency}) {
   if (_accelerometerEvents == null) {
     _accelerometerEvents = _accelerometerEventChannel
         .receiveBroadcastStream(frequency)
-        .map((dynamic event) => _listToAccelerometerEvent(event.cast<double>()));
+        .map((dynamic event) => _listToAccelerometerEvent(event));
   }
   return _accelerometerEvents;
 }
@@ -186,7 +199,7 @@ Stream<GyroscopeEvent> gyroscopeEvents({int frequency}) {
   if (_gyroscopeEvents == null) {
     _gyroscopeEvents = _gyroscopeEventChannel
         .receiveBroadcastStream(frequency)
-        .map((dynamic event) => _listToGyroscopeEvent(event.cast<double>()));
+        .map((dynamic event) => _listToGyroscopeEvent(event));
   }
   return _gyroscopeEvents;
 }
@@ -196,7 +209,7 @@ Stream<UserAccelerometerEvent> userAccelerometerEvents({int frequency}) {
   if (_userAccelerometerEvents == null) {
     _userAccelerometerEvents = _userAccelerometerEventChannel
         .receiveBroadcastStream(frequency)
-        .map((dynamic event) => _listToUserAccelerometerEvent(event.cast<double>()));
+        .map((dynamic event) => _listToUserAccelerometerEvent(event));
   }
   return _userAccelerometerEvents;
 }
@@ -216,7 +229,7 @@ Stream<MagnetometerEvent> magnetometerEvents({int frequency}) {
   if (_magnetometerEvents == null) {
     _magnetometerEvents = _magnetometerEventChannel
         .receiveBroadcastStream(frequency)
-        .map((dynamic event) => _listToMagnetometerEvent(event.cast<double>()));
+        .map((dynamic event) => _listToMagnetometerEvent(event));
   }
   return _magnetometerEvents;
 }

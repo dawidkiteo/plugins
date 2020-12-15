@@ -73,7 +73,7 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
 
             @Override
             public void onSensorChanged(SensorEvent event) {
-                final double timestamp = (double) System.nanoTime() / 1000000;
+                final long timestamp = System.nanoTime();
                 double[] sensorValues = new double[event.values.length + 1];
                 sensorValues[event.values.length] = timestamp;
                 for (int i = 0; i < event.values.length; i++) {
