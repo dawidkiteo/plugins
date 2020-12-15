@@ -17,10 +17,12 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
     private SensorEventListener sensorEventListener;
     private final SensorManager sensorManager;
     private final Sensor sensor;
+    private final boolean withTimestamps;
 
-    StreamHandlerImpl(SensorManager sensorManager, int sensorType) {
+    StreamHandlerImpl(SensorManager sensorManager, int sensorType, boolean withTimestamps) {
         this.sensorManager = sensorManager;
         sensor = sensorManager.getDefaultSensor(sensorType);
+        this.withTimestamps = withTimestamps;
     }
 
     @Override
@@ -32,7 +34,12 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
 
         Log.d("StreamHandlerImpl", sensor.toString() + " - sampling period: " + samplingPeriod);
 
-        sensorEventListener = createSensorEventListener(events);
+        if (withTimestamps) {
+            sensorEventListener = createSensorEventListenerWithTimestamps(events);
+        } else {
+            sensorEventListener = createSensorEventListener(events);
+        }
+
         sensorManager.registerListener(sensorEventListener, sensor, samplingPeriod);
     }
 
@@ -50,6 +57,25 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 double[] sensorValues = new double[event.values.length];
+                for (int i = 0; i < event.values.length; i++) {
+                    sensorValues[i] = event.values[i];
+                }
+                events.success(sensorValues);
+            }
+        };
+    }
+
+    SensorEventListener createSensorEventListenerWithTimestamps(final EventChannel.EventSink events) {
+        return new SensorEventListener() {
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                final double timestamp = (double) System.nanoTime() / 1000000;
+                double[] sensorValues = new double[event.values.length + 1];
+                sensorValues[event.values.length] = timestamp;
                 for (int i = 0; i < event.values.length; i++) {
                     sensorValues[i] = event.values[i];
                 }

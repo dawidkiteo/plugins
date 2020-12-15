@@ -22,7 +22,7 @@ const EventChannel _magnetometerEventChannel = EventChannel('plugins.flutter.io/
 /// a particular direction.
 class AccelerometerEvent {
   /// Contructs an instance with the given [x], [y], and [z] values.
-  AccelerometerEvent(this.x, this.y, this.z);
+  AccelerometerEvent(this.x, this.y, this.z, this.timestamp);
 
   /// Acceleration force along the x axis (including gravity) measured in m/s^2.
   ///
@@ -44,6 +44,9 @@ class AccelerometerEvent {
   /// towards the user and negative mean it is moving away from them.
   final double z;
 
+  /// Timestamp in milliseconds
+  final double timestamp;
+
   @override
   String toString() => '[AccelerometerEvent (x: $x, y: $y, z: $z)]';
 }
@@ -52,7 +55,7 @@ class AccelerometerEvent {
 /// the device in 3D space.
 class GyroscopeEvent {
   /// Contructs an instance with the given [x], [y], and [z] values.
-  GyroscopeEvent(this.x, this.y, this.z);
+  GyroscopeEvent(this.x, this.y, this.z, this.timestamp);
 
   /// Rate of rotation around the x axis measured in rad/s.
   ///
@@ -76,6 +79,9 @@ class GyroscopeEvent {
   /// on.
   final double z;
 
+  /// Timestamp in milliseconds
+  final double timestamp;
+
   @override
   String toString() => '[GyroscopeEvent (x: $x, y: $y, z: $z)]';
 }
@@ -85,7 +91,7 @@ class GyroscopeEvent {
 /// [AccelerometerEvent], this event does not include the effects of gravity.
 class UserAccelerometerEvent {
   /// Contructs an instance with the given [x], [y], and [z] values.
-  UserAccelerometerEvent(this.x, this.y, this.z);
+  UserAccelerometerEvent(this.x, this.y, this.z, this.timestamp);
 
   /// Acceleration force along the x axis (excluding gravity) measured in m/s^2.
   ///
@@ -107,6 +113,9 @@ class UserAccelerometerEvent {
   /// towards the user and negative mean it is moving away from them.
   final double z;
 
+  /// Timestamp in milliseconds
+  final double timestamp;
+
   @override
   String toString() => '[UserAccelerometerEvent (x: $x, y: $y, z: $z)]';
 }
@@ -127,23 +136,25 @@ class MagnetometerEvent {
   final double x;
   final double y;
   final double z;
+  /// Timestamp in milliseconds
+  final double timestamp;
 
-  MagnetometerEvent(this.x, this.y, this.z);
+  MagnetometerEvent(this.x, this.y, this.z, this.timestamp);
 
   @override
   String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
 }
 
 AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
-  return AccelerometerEvent(list[0], list[1], list[2]);
+  return AccelerometerEvent(list[0], list[1], list[2], list[3]);
 }
 
 UserAccelerometerEvent _listToUserAccelerometerEvent(List<double> list) {
-  return UserAccelerometerEvent(list[0], list[1], list[2]);
+  return UserAccelerometerEvent(list[0], list[1], list[2], list[3]);
 }
 
 GyroscopeEvent _listToGyroscopeEvent(List<double> list) {
-  return GyroscopeEvent(list[0], list[1], list[2]);
+  return GyroscopeEvent(list[0], list[1], list[2], list[3]);
 }
 
 BarometerEvent _listToBarometerEvent(List<double> list) {
@@ -151,7 +162,7 @@ BarometerEvent _listToBarometerEvent(List<double> list) {
 }
 
 MagnetometerEvent _listToMagnetometerEvent(List<double> list) {
-  return MagnetometerEvent(list[0], list[1], list[2]);
+  return MagnetometerEvent(list[0], list[1], list[2], list[3]);
 }
 
 Stream<AccelerometerEvent> _accelerometerEvents;

@@ -59,32 +59,38 @@ void _initAltimeter() {
     }
 }
 
-static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) {
+static void sendTriplet(Float64 x, Float64 y, Float64 z, Float64 timestamp, FlutterEventSink sink) {
     NSMutableData* event = [NSMutableData dataWithCapacity:3 * sizeof(Float64)];
     [event appendBytes:&x length:sizeof(Float64)];
     [event appendBytes:&y length:sizeof(Float64)];
     [event appendBytes:&z length:sizeof(Float64)];
+    [event appendBytes:&timestamp length:sizeof(Float64)];
     sink([FlutterStandardTypedData typedDataWithFloat64:event]);
+}
+
+static Float64 currentTimestamp() {
+    return [[NSNumber numberWithFloat:[[[NSDate date] init] timeIntervalSince1970] * 1000] floatValue];
 }
 
 @implementation FLTAccelerometerStreamHandler
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
-    
+
     if (arguments != nil) {
         double interval = 1.0 / [arguments intValue];
         [_motionManager setAccelerometerUpdateInterval: interval];
     }
-    
+
     [_motionManager
      startAccelerometerUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMAccelerometerData* accelerometerData, NSError* error) {
+        Float64 timestamp = currentTimestamp();
         CMAcceleration acceleration = accelerometerData.acceleration;
         // Multiply by gravity, and adjust sign values to
         // align with Android.
         sendTriplet(-acceleration.x * GRAVITY, -acceleration.y * GRAVITY,
-                    -acceleration.z * GRAVITY, eventSink);
+                    -acceleration.z * GRAVITY, timestamp, eventSink);
     }];
     return nil;
 }
@@ -100,19 +106,20 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
-    
+
     if (arguments != nil) {
         double interval = 1.0 / [arguments intValue];
         [_motionManager setAccelerometerUpdateInterval: interval];
     }
-    
+
     [_motionManager
      startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
+        Float64 timestamp = currentTimestamp();
         CMAcceleration acceleration = data.userAcceleration;
         // Multiply by gravity, and adjust sign values to align with Android.
         sendTriplet(-acceleration.x * GRAVITY, -acceleration.y * GRAVITY,
-                    -acceleration.z * GRAVITY, eventSink);
+                    -acceleration.z * GRAVITY, timestamp, eventSink);
     }];
     return nil;
 }
@@ -128,17 +135,19 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
-    
+
     if (arguments != nil) {
         double interval = 1.0 / [arguments intValue];
         [_motionManager setGyroUpdateInterval: interval];
     }
-    
+
     [_motionManager
      startGyroUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMGyroData* gyroData, NSError* error) {
+        Float64 timestamp = currentTimestamp();
         CMRotationRate rotationRate = gyroData.rotationRate;
-        sendTriplet(rotationRate.x, rotationRate.y, rotationRate.z, eventSink);
+        sendTriplet(rotationRate.x, rotationRate.y, rotationRate.z, timestamp, eventSink);
+
     }];
     return nil;
 }
@@ -154,7 +163,7 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initAltimeter();
-    
+
     [_altimeter
      startRelativeAltitudeUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMAltitudeData* altitudeData, NSError* error) {
@@ -177,7 +186,7 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
-    
+
     if (arguments != nil) {
         double interval = 1.0 / [arguments intValue];
         [_motionManager setMagnetometerUpdateInterval: interval];
@@ -186,7 +195,9 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, FlutterEventSink sink) 
     [_motionManager
      startMagnetometerUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMMagnetometerData* magData, NSError* error) {
-        sendTriplet(magData.magneticField.x, magData.magneticField.y, magData.magneticField.z, eventSink);
+        Float64 timestamp = currentTimestamp();
+        sendTriplet(magData.magneticField.x, magData.magneticField.y,
+                    magData.magneticField.z, timestamp, eventSink);
     }];
     return nil;
 }
