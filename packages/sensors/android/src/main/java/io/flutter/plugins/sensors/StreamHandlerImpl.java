@@ -10,6 +10,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import java.util.HashMap;
+
 import io.flutter.plugin.common.EventChannel;
 
 class StreamHandlerImpl implements EventChannel.StreamHandler {
@@ -74,12 +76,12 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 final long timestamp = System.nanoTime();
-                double[] sensorValues = new double[event.values.length + 1];
-                sensorValues[event.values.length] = timestamp;
-                for (int i = 0; i < event.values.length; i++) {
-                    sensorValues[i] = event.values[i];
-                }
-                events.success(sensorValues);
+                final HashMap<String, Object> valuesMap = new HashMap<>();
+                valuesMap.put("x", event.values[0]);
+                valuesMap.put("y", event.values[1]);
+                valuesMap.put("z", event.values[2]);
+                valuesMap.put("timestamp", timestamp);
+                events.success(valuesMap);
             }
         };
     }
