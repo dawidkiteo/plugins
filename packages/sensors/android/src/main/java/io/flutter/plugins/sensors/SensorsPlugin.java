@@ -8,14 +8,19 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 
+import androidx.annotation.NonNull;
+
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
 
 /**
  * SensorsPlugin
  */
-public class SensorsPlugin implements FlutterPlugin {
+public class SensorsPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler {
+    private static final String METHOD_CHANNEL_NAME = "plugins.flutter.io/sensors/method";
     private static final String ACCELEROMETER_CHANNEL_NAME =
             "plugins.flutter.io/sensors/accelerometer";
     private static final String GYROSCOPE_CHANNEL_NAME = "plugins.flutter.io/sensors/gyroscope";
@@ -26,6 +31,8 @@ public class SensorsPlugin implements FlutterPlugin {
     private static final String MAGNETOMETER_CHANNEL_NAME =
             "plugins.flutter.io/sensors/magnetometer";
 
+    private Context context;
+    private MethodChannel methodChannel;
     private EventChannel accelerometerChannel;
     private EventChannel userAccelChannel;
     private EventChannel gyroscopeChannel;
@@ -43,7 +50,9 @@ public class SensorsPlugin implements FlutterPlugin {
 
     @Override
     public void onAttachedToEngine(FlutterPluginBinding binding) {
-        final Context context = binding.getApplicationContext();
+        context = binding.getApplicationContext();
+        methodChannel = new MethodChannel(binding.getBinaryMessenger(), METHOD_CHANNEL_NAME);
+        methodChannel.setMethodCallHandler(this);
         setupEventChannels(context, binding.getBinaryMessenger());
     }
 
@@ -100,5 +109,16 @@ public class SensorsPlugin implements FlutterPlugin {
         gyroscopeChannel.setStreamHandler(null);
         barometerChannel.setStreamHandler(null);
         magnetometerChannel.setStreamHandler(null);
+        methodChannel.setMethodCallHandler(null);
+        context = null;
+    }
+
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+        if (call.method.equals("isBaroSupported")) {
+            final SensorManager manager = (SensorManager) context.getSystemService(context.SENSOR_SERVICE);
+            final boolean hasBarometer = manager.getDefaultSensor(Sensor.TYPE_PRESSURE) != null;
+            result.success(hasBarometer);
+        }
     }
 }

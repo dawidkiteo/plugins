@@ -3,8 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+
+const MethodChannel _methodChannel = MethodChannel('plugins.flutter.io/sensors/method');
 
 const EventChannel _accelerometerEventChannel = EventChannel('plugins.flutter.io/sensors/accelerometer');
 
@@ -219,4 +222,12 @@ Stream<MagnetometerEvent> magnetometerEvents({int frequency}) {
         .map((dynamic event) => _listToMagnetometerEvent(event));
   }
   return _magnetometerEvents;
+}
+
+Future<bool> isBarometerSupported() async {
+  if (Platform.isIOS) {
+    return true;
+  } else {
+    return _methodChannel.invokeMethod('isBaroSupported');
+  }
 }
