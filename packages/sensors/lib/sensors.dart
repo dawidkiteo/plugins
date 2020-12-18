@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -137,6 +136,7 @@ class MagnetometerEvent {
   final double x;
   final double y;
   final double z;
+
   /// Timestamp in milliseconds
   final int timestamp;
 
@@ -147,15 +147,15 @@ class MagnetometerEvent {
 }
 
 AccelerometerEvent _listToAccelerometerEvent(Map<dynamic, dynamic> map) {
-  return AccelerometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
+  return AccelerometerEvent(map[0] as double, map[1] as double, map[2] as double, map[3] as int);
 }
 
 UserAccelerometerEvent _listToUserAccelerometerEvent(Map<dynamic, dynamic> map) {
-  return UserAccelerometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
+  return UserAccelerometerEvent(map[0] as double, map[1] as double, map[2] as double, map[3] as int);
 }
 
 GyroscopeEvent _listToGyroscopeEvent(Map<dynamic, dynamic> map) {
-  return GyroscopeEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
+  return GyroscopeEvent(map[0] as double, map[1] as double, map[2] as double, map[3] as int);
 }
 
 BarometerEvent _listToBarometerEvent(List<double> list) {
@@ -163,7 +163,7 @@ BarometerEvent _listToBarometerEvent(List<double> list) {
 }
 
 MagnetometerEvent _listToMagnetometerEvent(Map<dynamic, dynamic> map) {
-  return MagnetometerEvent(map['x'] as double, map['y'] as double, map['z'] as double, map['timestamp'] as int);
+  return MagnetometerEvent(map[0] as double, map[1] as double, map[2] as double, map[3] as int);
 }
 
 Stream<AccelerometerEvent> _accelerometerEvents;
@@ -185,9 +185,8 @@ Stream<AccelerometerEvent> accelerometerEvents({int frequency}) {
 /// A broadcast stream of events from the device gyroscope.
 Stream<GyroscopeEvent> gyroscopeEvents({int frequency}) {
   if (_gyroscopeEvents == null) {
-    _gyroscopeEvents = _gyroscopeEventChannel
-        .receiveBroadcastStream(frequency)
-        .map((dynamic event) => _listToGyroscopeEvent(event));
+    _gyroscopeEvents =
+        _gyroscopeEventChannel.receiveBroadcastStream(frequency).map((dynamic event) => _listToGyroscopeEvent(event));
   }
   return _gyroscopeEvents;
 }

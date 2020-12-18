@@ -61,10 +61,10 @@ void _initAltimeter() {
 
 static void sendTriplet(Float64 x, Float64 y, Float64 z, uint64_t timestamp, FlutterEventSink sink) {
     NSDictionary *dictionary = @{
-           @"x" : [NSNumber numberWithFloat: x],
-           @"y" : [NSNumber numberWithFloat: y],
-           @"z" : [NSNumber numberWithFloat: z],
-           @"timestamp" : [NSNumber numberWithUnsignedLongLong: timestamp]
+           [NSNumber numberWithInt: 0] : [NSNumber numberWithFloat: x],
+           [NSNumber numberWithInt: 1] : [NSNumber numberWithFloat: y],
+           [NSNumber numberWithInt: 2] : [NSNumber numberWithFloat: z],
+           [NSNumber numberWithInt: 3] : [NSNumber numberWithUnsignedLongLong: timestamp]
     };
     sink(dictionary);
 }

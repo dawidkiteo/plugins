@@ -76,11 +76,11 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 final long timestamp = System.nanoTime();
-                final HashMap<String, Object> valuesMap = new HashMap<>();
-                valuesMap.put("x", event.values[0]);
-                valuesMap.put("y", event.values[1]);
-                valuesMap.put("z", event.values[2]);
-                valuesMap.put("timestamp", timestamp);
+                final HashMap<Integer, Object> valuesMap = new HashMap<>();
+                valuesMap.put(0, event.values[0]);
+                valuesMap.put(1, event.values[1]);
+                valuesMap.put(2, event.values[2]);
+                valuesMap.put(3, timestamp);
                 events.success(valuesMap);
             }
         };
