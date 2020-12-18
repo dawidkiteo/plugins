@@ -71,9 +71,7 @@ static void sendTriplet(Float64 x, Float64 y, Float64 z, uint64_t timestamp, Flu
 
 static uint64_t currentTimestamp() {
     if (@available(iOS 10.0, *)) {
-        uint64_t clock = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
-        NSLog(@"%llu", clock);
-        return clock;
+        return clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
     } else {
         return 0;// Fallback on earlier versions
     }
