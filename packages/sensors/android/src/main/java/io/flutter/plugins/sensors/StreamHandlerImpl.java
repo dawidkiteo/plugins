@@ -29,12 +29,14 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
 
     @Override
     public void onListen(Object arguments, EventChannel.EventSink events) {
+        if (sensorManager == null) {
+            return;
+        }
+
         int samplingPeriod = SensorManager.SENSOR_DELAY_FASTEST;
         if (arguments != null) {
             samplingPeriod = 1000000 / ((int) arguments);
         }
-
-        Log.d("StreamHandlerImpl", sensor.toString() + " - sampling period: " + samplingPeriod);
 
         if (withTimestamps) {
             sensorEventListener = createSensorEventListenerWithTimestamps(events);
@@ -47,6 +49,9 @@ class StreamHandlerImpl implements EventChannel.StreamHandler {
 
     @Override
     public void onCancel(Object arguments) {
+        if (sensorManager == null) {
+            return;
+        }
         sensorManager.unregisterListener(sensorEventListener);
     }
 
