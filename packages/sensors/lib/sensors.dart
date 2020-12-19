@@ -19,6 +19,8 @@ const EventChannel _barometerEventChannel = EventChannel('plugins.flutter.io/sen
 
 const EventChannel _magnetometerEventChannel = EventChannel('plugins.flutter.io/sensors/magnetometer');
 
+const EventChannel _motionDataEventChannel = EventChannel('plugins.flutter.io/sensors/motion');
+
 /// Discrete reading from an accelerometer. Accelerometers measure the velocity
 /// of the device. Note that these readings include the effects of gravity. Put
 /// simply, you can use accelerometer readings to tell if the device is moving in
@@ -149,6 +151,32 @@ class MagnetometerEvent {
   String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
 }
 
+class MotionData {
+  final double accX;
+  final double accY;
+  final double accZ;
+
+  final double gyroX;
+  final double gyroY;
+  final double gyroZ;
+
+  final double magX;
+  final double magY;
+  final double magZ;
+
+  MotionData(
+    this.accX,
+    this.accY,
+    this.accZ,
+    this.gyroX,
+    this.gyroY,
+    this.gyroZ,
+    this.magX,
+    this.magY,
+    this.magZ,
+  );
+}
+
 AccelerometerEvent _listToAccelerometerEvent(Map<dynamic, dynamic> map) {
   return AccelerometerEvent(map[0] as double, map[1] as double, map[2] as double, map[3] as int);
 }
@@ -174,6 +202,7 @@ Stream<GyroscopeEvent> _gyroscopeEvents;
 Stream<UserAccelerometerEvent> _userAccelerometerEvents;
 Stream<BarometerEvent> _barometerEvents;
 Stream<MagnetometerEvent> _magnetometerEvents;
+Stream<MotionData> _motionDataEvents;
 
 /// A broadcast stream of events from the device accelerometer.
 Stream<AccelerometerEvent> accelerometerEvents({int frequency}) {
@@ -222,6 +251,30 @@ Stream<MagnetometerEvent> magnetometerEvents({int frequency}) {
         .map((dynamic event) => _listToMagnetometerEvent(event));
   }
   return _magnetometerEvents;
+}
+
+Stream<MotionData> motionDataEvents({int frequency}) {
+  if (_motionDataEvents == null) {
+    _motionDataEvents = _motionDataEventChannel
+        .receiveBroadcastStream(frequency)
+        .map((event) => _listToMotionData(event.cast<double>()));
+  }
+
+  return _motionDataEvents;
+}
+
+MotionData _listToMotionData(List<double> list) {
+  return MotionData(
+    list[0],
+    list[1],
+    list[2],
+    list[3],
+    list[4],
+    list[5],
+    list[6],
+    list[7],
+    list[8],
+  );
 }
 
 Future<bool> isBarometerSupported() async {

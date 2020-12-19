@@ -39,6 +39,10 @@
     [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/magnetometer"
                               binaryMessenger:[registrar messenger]];
     [magnetometerChannel setStreamHandler:magnetometerStreamHandler];
+
+    FLTSensorsStreamHandler* deviceMotionStreamHandler = [[FLTSensorsStreamHandler alloc] init];
+    FlutterEventChannel* deviceMotionChannel = [FlutterEventChannel eventChannelWithName:@"plugins.flutter.io/sensors/motion" binaryMessenger:[registrar messenger]];
+    [deviceMotionChannel setStreamHandler:deviceMotionStreamHandler];
 }
 
 @end
@@ -61,10 +65,10 @@ void _initAltimeter() {
 
 static void sendTriplet(Float64 x, Float64 y, Float64 z, uint64_t timestamp, FlutterEventSink sink) {
     NSDictionary *dictionary = @{
-           [NSNumber numberWithInt: 0] : [NSNumber numberWithFloat: x],
-           [NSNumber numberWithInt: 1] : [NSNumber numberWithFloat: y],
-           [NSNumber numberWithInt: 2] : [NSNumber numberWithFloat: z],
-           [NSNumber numberWithInt: 3] : [NSNumber numberWithUnsignedLongLong: timestamp]
+        [NSNumber numberWithInt: 0] : [NSNumber numberWithFloat: x],
+        [NSNumber numberWithInt: 1] : [NSNumber numberWithFloat: y],
+        [NSNumber numberWithInt: 2] : [NSNumber numberWithFloat: z],
+        [NSNumber numberWithInt: 3] : [NSNumber numberWithUnsignedLongLong: timestamp]
     };
     sink(dictionary);
 }
@@ -209,6 +213,57 @@ static uint64_t currentTimestamp() {
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
     [_motionManager stopMagnetometerUpdates];
+    return nil;
+}
+
+@end
+
+@implementation FLTSensorsStreamHandler
+
+- (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
+    _initMotionManager();
+
+    if (arguments != nil) {
+        double interval = 1.0 / [arguments intValue];
+        [_motionManager setDeviceMotionUpdateInterval: interval];
+    }
+
+    [_motionManager
+     startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
+     withHandler:^(CMDeviceMotion* data, NSError* error) {
+        Float64 accX = (data.userAcceleration.x + data.gravity.x) * -9.81;
+        Float64 accY = (data.userAcceleration.y + data.gravity.y) * -9.81;
+        Float64 accZ = (data.userAcceleration.z + data.gravity.z) * -9.81;
+
+        Float64 gyrX = data.rotationRate.x;
+        Float64 gyrY = data.rotationRate.y;
+        Float64 gyrZ = data.rotationRate.z;
+
+        Float64 magX = data.magneticField.field.x * 0.000001;
+        Float64 magY = data.magneticField.field.y * 0.000001;
+        Float64 magZ = data.magneticField.field.z * 0.000001;
+
+        NSMutableData* event = [NSMutableData dataWithCapacity:9 * sizeof(Float64)];
+
+        [event appendBytes:&accX length:sizeof(Float64)];
+        [event appendBytes:&accY length:sizeof(Float64)];
+        [event appendBytes:&accZ length:sizeof(Float64)];
+
+        [event appendBytes:&gyrX length:sizeof(Float64)];
+        [event appendBytes:&gyrY length:sizeof(Float64)];
+        [event appendBytes:&gyrZ length:sizeof(Float64)];
+
+        [event appendBytes:&magX length:sizeof(Float64)];
+        [event appendBytes:&magY length:sizeof(Float64)];
+        [event appendBytes:&magZ length:sizeof(Float64)];
+
+        eventSink([FlutterStandardTypedData typedDataWithFloat64:event]);
+    }];
+    return nil;
+}
+
+- (FlutterError*)onCancelWithArguments:(id)arguments {
+    [_motionManager stopDeviceMotionUpdates];
     return nil;
 }
 
