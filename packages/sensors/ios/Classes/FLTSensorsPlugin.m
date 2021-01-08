@@ -231,9 +231,9 @@ static uint64_t currentTimestamp() {
     [_motionManager
      startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
-        Float64 accX = (data.userAcceleration.x + data.gravity.x) * -9.81;
-        Float64 accY = (data.userAcceleration.y + data.gravity.y) * -9.81;
-        Float64 accZ = (data.userAcceleration.z + data.gravity.z) * -9.81;
+        Float64 accX = (data.userAcceleration.x + data.gravity.x) * -GRAVITY;
+        Float64 accY = (data.userAcceleration.y + data.gravity.y) * -GRAVITY;
+        Float64 accZ = (data.userAcceleration.z + data.gravity.z) * -GRAVITY;
 
         Float64 gyrX = data.rotationRate.x;
         Float64 gyrY = data.rotationRate.y;
