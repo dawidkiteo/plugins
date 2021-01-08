@@ -220,17 +220,34 @@ static uint64_t currentTimestamp() {
 
 @implementation FLTSensorsStreamHandler
 
+uint64_t startTimestamp = 0;
+uint64_t timeStep = 0;
+uint64_t offset = 0;
+
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
 
     if (arguments != nil) {
-        double interval = 1.0 / [arguments intValue];
+        double interval = 1.0 / (double) [arguments intValue];
+        timeStep = interval * 1000 * 1000000;
         [_motionManager setDeviceMotionUpdateInterval: interval];
     }
 
     [_motionManager
-     startDeviceMotionUpdatesToQueue:[[NSOperationQueue alloc] init]
+     startDeviceMotionUpdatesUsingReferenceFrame: CMAttitudeReferenceFrameXTrueNorthZVertical
+     toQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
+        if (startTimestamp == 0) {
+            startTimestamp = currentTimestamp();
+        }
+        
+        uint64_t expectedOffset = (currentTimestamp() - startTimestamp) / timeStep;
+        if (offset > expectedOffset + 1) {
+            return;
+        }
+        
+        offset++;
+        
         Float64 accX = (data.userAcceleration.x + data.gravity.x) * -GRAVITY;
         Float64 accY = (data.userAcceleration.y + data.gravity.y) * -GRAVITY;
         Float64 accZ = (data.userAcceleration.z + data.gravity.z) * -GRAVITY;
