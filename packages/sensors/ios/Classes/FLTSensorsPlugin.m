@@ -224,6 +224,7 @@ static uint64_t currentTimestamp() {
 uint64_t startTimestamp = 0;
 uint64_t timeStep = 0;
 uint64_t offset = 0;
+bool finished;
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
     _initMotionManager();
@@ -235,11 +236,17 @@ uint64_t offset = 0;
         double expectedInterval = 1.0 / (double) [arguments intValue];
         timeStep = expectedInterval * 1000 * 1000000;
     }
-
+    
+    startTimestamp = 0;
+    offset = 0;
+    finished = false;
+    
     [_motionManager
      startDeviceMotionUpdatesUsingReferenceFrame: CMAttitudeReferenceFrameXTrueNorthZVertical
      toQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
+        if (finished) return;
+        
         uint64_t timestamp = currentTimestamp();
         
         if (startTimestamp == 0) {
@@ -285,6 +292,7 @@ uint64_t offset = 0;
 }
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
+    finished = true;
     [_motionManager stopDeviceMotionUpdates];
     return nil;
 }
