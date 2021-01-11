@@ -48,6 +48,7 @@
 @end
 
 const double GRAVITY = 9.8;
+const double MAGNETOMETER_FACTOR = 0.000001;
 CMMotionManager* _motionManager;
 CMAltimeter* _altimeter;
 
@@ -228,21 +229,25 @@ uint64_t offset = 0;
     _initMotionManager();
 
     if (arguments != nil) {
-        double interval = 1.0 / (double) [arguments intValue];
-        timeStep = interval * 1000 * 1000000;
-        [_motionManager setDeviceMotionUpdateInterval: interval];
+        double fixedInterval = 1.0 / (double) ([arguments intValue] + 10);
+        [_motionManager setDeviceMotionUpdateInterval: fixedInterval];
+        
+        double expectedInterval = 1.0 / (double) [arguments intValue];
+        timeStep = expectedInterval * 1000 * 1000000;
     }
 
     [_motionManager
      startDeviceMotionUpdatesUsingReferenceFrame: CMAttitudeReferenceFrameXTrueNorthZVertical
      toQueue:[[NSOperationQueue alloc] init]
      withHandler:^(CMDeviceMotion* data, NSError* error) {
+        uint64_t timestamp = currentTimestamp();
+        
         if (startTimestamp == 0) {
-            startTimestamp = currentTimestamp();
+            startTimestamp = timestamp;
         }
         
-        uint64_t expectedOffset = (currentTimestamp() - startTimestamp) / timeStep;
-        if (offset > expectedOffset + 1) {
+        uint64_t expectedOffset = (timestamp - startTimestamp) / timeStep;
+        if (offset > expectedOffset) {
             return;
         }
         
@@ -256,9 +261,9 @@ uint64_t offset = 0;
         Float64 gyrY = data.rotationRate.y;
         Float64 gyrZ = data.rotationRate.z;
 
-        Float64 magX = data.magneticField.field.x * 0.000001;
-        Float64 magY = data.magneticField.field.y * 0.000001;
-        Float64 magZ = data.magneticField.field.z * 0.000001;
+        Float64 magX = data.magneticField.field.x * MAGNETOMETER_FACTOR;
+        Float64 magY = data.magneticField.field.y * MAGNETOMETER_FACTOR;
+        Float64 magZ = data.magneticField.field.z * MAGNETOMETER_FACTOR;
 
         NSMutableData* event = [NSMutableData dataWithCapacity:9 * sizeof(Float64)];
 
