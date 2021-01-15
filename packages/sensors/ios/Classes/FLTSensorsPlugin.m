@@ -230,7 +230,7 @@ bool finished;
     _initMotionManager();
 
     if (arguments != nil) {
-        double fixedInterval = 1.0 / (double) ([arguments intValue] + 10);
+        double fixedInterval = 1.0 / (double) ([arguments intValue] * 2);
         [_motionManager setDeviceMotionUpdateInterval: fixedInterval];
         
         double expectedInterval = 1.0 / (double) [arguments intValue];
