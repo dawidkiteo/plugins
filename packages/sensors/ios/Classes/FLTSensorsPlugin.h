@@ -15,3 +15,9 @@
 
 @interface FLTGyroscopeStreamHandler : NSObject <FlutterStreamHandler>
 @end
+
+@interface FLTBarometerStreamHandler : NSObject <FlutterStreamHandler>
+@end
+
+@interface FLTMagnetometerStreamHandler : NSObject <FlutterStreamHandler>
+@end

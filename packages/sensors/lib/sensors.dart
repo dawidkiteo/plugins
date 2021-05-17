@@ -3,16 +3,18 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:flutter/services.dart';
 
-const EventChannel _accelerometerEventChannel =
-    EventChannel('plugins.flutter.io/sensors/accelerometer');
+const EventChannel _accelerometerEventChannel = EventChannel('plugins.flutter.io/sensors/accelerometer');
 
-const EventChannel _userAccelerometerEventChannel =
-    EventChannel('plugins.flutter.io/sensors/user_accel');
+const EventChannel _userAccelerometerEventChannel = EventChannel('plugins.flutter.io/sensors/user_accel');
 
-const EventChannel _gyroscopeEventChannel =
-    EventChannel('plugins.flutter.io/sensors/gyroscope');
+const EventChannel _gyroscopeEventChannel = EventChannel('plugins.flutter.io/sensors/gyroscope');
+
+const EventChannel _barometerEventChannel = EventChannel('plugins.flutter.io/sensors/barometer');
+
+const EventChannel _magnetometerEventChannel = EventChannel('plugins.flutter.io/sensors/magnetometer');
 
 /// Discrete reading from an accelerometer. Accelerometers measure the velocity
 /// of the device. Note that these readings include the effects of gravity. Put
@@ -109,6 +111,29 @@ class UserAccelerometerEvent {
   String toString() => '[UserAccelerometerEvent (x: $x, y: $y, z: $z)]';
 }
 
+/// Reading from barometer that returns atmospheric pressure in pressure (millibar)
+class BarometerEvent {
+  /// Atmospheric pressure
+  final double pressure;
+
+  /// Contructs an instance with the given pressure
+  BarometerEvent(this.pressure);
+
+  @override
+  String toString() => '[BarometerEvent (pressure: $pressure)]';
+}
+
+class MagnetometerEvent {
+  final double x;
+  final double y;
+  final double z;
+
+  MagnetometerEvent(this.x, this.y, this.z);
+
+  @override
+  String toString() => '[MagnetometerEvent (x: $x, y: $y, z: $z)]';
+}
+
 AccelerometerEvent _listToAccelerometerEvent(List<double> list) {
   return AccelerometerEvent(list[0], list[1], list[2]);
 }
@@ -121,38 +146,66 @@ GyroscopeEvent _listToGyroscopeEvent(List<double> list) {
   return GyroscopeEvent(list[0], list[1], list[2]);
 }
 
+BarometerEvent _listToBarometerEvent(List<double> list) {
+  return BarometerEvent(list[0]);
+}
+
+MagnetometerEvent _listToMagnetometerEvent(List<double> list) {
+  return MagnetometerEvent(list[0], list[1], list[2]);
+}
+
 Stream<AccelerometerEvent> _accelerometerEvents;
 Stream<GyroscopeEvent> _gyroscopeEvents;
 Stream<UserAccelerometerEvent> _userAccelerometerEvents;
+Stream<BarometerEvent> _barometerEvents;
+Stream<MagnetometerEvent> _magnetometerEvents;
 
 /// A broadcast stream of events from the device accelerometer.
-Stream<AccelerometerEvent> get accelerometerEvents {
+Stream<AccelerometerEvent> accelerometerEvents({int frequency}) {
   if (_accelerometerEvents == null) {
     _accelerometerEvents = _accelerometerEventChannel
-        .receiveBroadcastStream()
-        .map(
-            (dynamic event) => _listToAccelerometerEvent(event.cast<double>()));
+        .receiveBroadcastStream(frequency)
+        .map((dynamic event) => _listToAccelerometerEvent(event.cast<double>()));
   }
   return _accelerometerEvents;
 }
 
 /// A broadcast stream of events from the device gyroscope.
-Stream<GyroscopeEvent> get gyroscopeEvents {
+Stream<GyroscopeEvent> gyroscopeEvents({int frequency}) {
   if (_gyroscopeEvents == null) {
     _gyroscopeEvents = _gyroscopeEventChannel
-        .receiveBroadcastStream()
+        .receiveBroadcastStream(frequency)
         .map((dynamic event) => _listToGyroscopeEvent(event.cast<double>()));
   }
   return _gyroscopeEvents;
 }
 
 /// Events from the device accelerometer with gravity removed.
-Stream<UserAccelerometerEvent> get userAccelerometerEvents {
+Stream<UserAccelerometerEvent> userAccelerometerEvents({int frequency}) {
   if (_userAccelerometerEvents == null) {
     _userAccelerometerEvents = _userAccelerometerEventChannel
-        .receiveBroadcastStream()
-        .map((dynamic event) =>
-            _listToUserAccelerometerEvent(event.cast<double>()));
+        .receiveBroadcastStream(frequency)
+        .map((dynamic event) => _listToUserAccelerometerEvent(event.cast<double>()));
   }
   return _userAccelerometerEvents;
+}
+
+/// A broadcast stream of events from the device barometer.
+Stream<BarometerEvent> barometerEvents({int frequency}) {
+  if (_barometerEvents == null) {
+    _barometerEvents = _barometerEventChannel
+        .receiveBroadcastStream(frequency)
+        .map((dynamic event) => _listToBarometerEvent(event.cast<double>()));
+  }
+  return _barometerEvents;
+}
+
+/// A broadcast stream of values recorded by magnetometer
+Stream<MagnetometerEvent> magnetometerEvents({int frequency}) {
+  if (_magnetometerEvents == null) {
+    _magnetometerEvents = _magnetometerEventChannel
+        .receiveBroadcastStream(frequency)
+        .map((dynamic event) => _listToMagnetometerEvent(event.cast<double>()));
+  }
+  return _magnetometerEvents;
 }
